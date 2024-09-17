@@ -41,4 +41,9 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### program generated files & folders ###
 bearer.txt
+template/
+config.json
+config.json~
+internal.md

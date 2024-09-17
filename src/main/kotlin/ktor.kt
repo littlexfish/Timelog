@@ -16,8 +16,8 @@ import kotlinx.coroutines.launch
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-const val authUrl = "http://140.124.181.95:30100"
-const val timeLogUrl = "http://140.124.181.95:30200"
+val authUrl get() = config.authServer
+val timelogUrl get() = config.timelogServer
 
 val client = HttpClient(OkHttp) {
 	engine {
@@ -58,7 +58,7 @@ suspend fun getProfile(token: String): Profile? {
 }
 
 suspend fun getTeams(username: String): TeamList? {
-	val res = client.post("$timeLogUrl/api/belong") {
+	val res = client.post("$timelogUrl/api/belong") {
 		contentType(ContentType.Application.Json)
 		setBody(mapOf("username" to username))
 	}
@@ -85,7 +85,7 @@ fun ensureTeam(profile: Profile, teamList: MutableState<TeamList?>) {
 }
 
 suspend fun getActivities(userId: String): ActivityTypeListJson? {
-	val res = client.post("$timeLogUrl/api/login") {
+	val res = client.post("$timelogUrl/api/login") {
 		contentType(ContentType.Application.Json)
 		setBody(mapOf("userID" to userId))
 	}
@@ -113,7 +113,7 @@ fun ensureActivities(profile: Profile, activities: MutableState<ActivityTypeList
 
 suspend fun getHistory(profile: Profile, startDate: CustomDateTime, endDate: CustomDateTime): HistoryResponse? {
 	val req = HistoryRequest(profile.userId, startDate.toOnlyDate(), endDate.toOnlyDate())
-	val res = client.post("$timeLogUrl/api/log/history") {
+	val res = client.post("$timelogUrl/api/log/history") {
 		contentType(ContentType.Application.Json)
 		setBody(req)
 	}
@@ -125,7 +125,7 @@ suspend fun getHistory(profile: Profile, startDate: CustomDateTime, endDate: Cus
 }
 
 suspend fun postRecord(record: Record): RecordResponse? {
-	val res = client.post("$timeLogUrl/api/log/record") {
+	val res = client.post("$timelogUrl/api/log/record") {
 		contentType(ContentType.Application.Json)
 		setBody(record)
 	}
@@ -137,7 +137,7 @@ suspend fun postRecord(record: Record): RecordResponse? {
 }
 
 suspend fun getBoard(begin: CustomDateTime, end: CustomDateTime, profile: Profile): BoardData? {
-	val res = client.post("$timeLogUrl/api/dash-board/spent-time") {
+	val res = client.post("$timelogUrl/api/dash-board/spent-time") {
 		contentType(ContentType.Application.Json)
 		setBody(mapOf(
 			"userID" to profile.userId,
