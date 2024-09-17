@@ -29,7 +29,7 @@ import org.jetbrains.jewel.window.TitleBar
 import org.jetbrains.jewel.window.styling.DecoratedWindowStyle
 import org.jetbrains.jewel.window.styling.TitleBarStyle
 
-const val version = "0.1.2"
+const val version = "1.0.2"
 
 enum class Page {
 	History,
