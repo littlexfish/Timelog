@@ -1,7 +1,9 @@
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -66,7 +68,8 @@ fun HistoryPage(profileState: MutableState<Profile?>, recordPageState: MutableSt
 			}
 		}
 		Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-
+			val scroll = rememberScrollState()
+			val scrollEnabled by derivedStateOf { scroll.maxValue > 0 }
 			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 				@Composable
 				fun Title(name: String, tooltip: String, modifier: Modifier = Modifier.weight(1f), color: Color = Color.Black) {
@@ -79,13 +82,17 @@ fun HistoryPage(profileState: MutableState<Profile?>, recordPageState: MutableSt
 				Title("Activity", "Activity Type")
 				Title("Start", "Start Time")
 				Title("End", "End Time")
+				if(scrollEnabled) Spacer(Modifier.width(8.dp))
 			}
 			Divider(Orientation.Horizontal, Modifier.fillMaxWidth())
-			val scroll = rememberScrollState()
-			Column(Modifier.verticalScroll(scroll).weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-				historyResponse.value.logItemList.sortedByDescending { it.startTime }.forEach {
-					HistoryItem(it, recordPageState, record)
+			Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+				Column(Modifier.verticalScroll(scroll).weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+					historyResponse.value.logItemList.sortedByDescending { it.startTime }.forEach {
+						HistoryItem(it, recordPageState, record)
+					}
 				}
+				// FIXME: scrollbar is not showing
+				if(scrollEnabled) VerticalScrollbar(rememberScrollbarAdapter(scroll), Modifier.width(8.dp).fillMaxHeight())
 			}
 			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 				Tooltip({ Text("Add single log") }) {
