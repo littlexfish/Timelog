@@ -1,10 +1,7 @@
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -69,7 +66,7 @@ fun RecordPage(profile: Profile, teamList: MutableState<TeamList?>, activities: 
 				{
 					beginTime.value = it
 					endTime.value = it + interval.value
-				}, minuteStep = 10)
+				}, minuteStep = 10, yearMin = (beginTime.value.year ?: 2000) - 10, yearMax = (beginTime.value.year ?: 2000) + 10)
 			Spacer(Modifier.width(8.dp))
 			Text("Interval")
 			TimePicker(interval.value.toTimePair(),
@@ -99,7 +96,7 @@ fun RecordPage(profile: Profile, teamList: MutableState<TeamList?>, activities: 
 			HDateTimePicker(endTime.value, {
 				endTime.value = it
 				interval.value = it - beginTime.value
-			}, minuteStep = 10)
+			}, minuteStep = 10, yearMin = (endTime.value.year ?: 2000) - 10, yearMax = (endTime.value.year ?: 2000) + 10)
 		}
 		Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 			val isSaving = remember { mutableStateOf(false) }
@@ -236,9 +233,9 @@ fun WeeklyRecordPage(profile: Profile, teamList: MutableState<TeamList?>, activi
 		val toDate = remember { mutableStateOf(now) }
 		Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
 			Text("From")
-			DatePicker(fromDate.value.toDateTriple(), { fromDate.value = it.toCustomDateTime() })
+			DatePicker(fromDate.value.toDateTriple(), { fromDate.value = it.toCustomDateTime() }, yearMin = (now.year ?: 2000) - 10, yearMax = (now.year ?: 2000) + 10)
 			Text("To")
-			DatePicker(toDate.value.toDateTriple(), { toDate.value = it.toCustomDateTime() })
+			DatePicker(toDate.value.toDateTriple(), { toDate.value = it.toCustomDateTime() }, yearMin = (now.year ?: 2000) - 10, yearMax = (now.year ?: 2000) + 10)
 		}
 		if (popup.value.isNotBlank()) {
 			DialogWindow(onCloseRequest = {
@@ -354,6 +351,7 @@ private fun importWeekRecord(records: List<SnapshotStateList<Record>>, file: Fil
 	}
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun EditWeekRecord(record: Record, onValueChange: (Record) -> Unit,
                            teamList: MutableState<TeamList?>,
@@ -406,10 +404,14 @@ private fun EditWeekRecord(record: Record, onValueChange: (Record) -> Unit,
 					}
 					onValueChange(record.copy(endTime = it.toCustomDateTime()))
 				}, Modifier.cell(), minuteStep = 10)
-			Row(Modifier.clip(CircleShape).fillMaxHeight().clickable {
-				onRemove()
-			}.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-				Icon(AllIconsKeys.Diff.Remove, "Remove", Modifier.size(16.dp))
+			Tooltip({
+				Text("Remove")
+			}) {
+				Row(Modifier.clip(CircleShape).fillMaxHeight().clickable {
+					onRemove()
+				}.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
+					Icon(AllIconsKeys.Diff.Remove, "Remove", Modifier.size(16.dp))
+				}
 			}
 		}
 	}

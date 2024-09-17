@@ -39,9 +39,9 @@ data class CustomDateTime(
 ): Comparable<CustomDateTime> {
 
 	companion object {
-		private val format = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
-		private val formatOnlyDate = DateTimeFormatter.ofPattern("yyyy/MM/dd")
-		private val formatOnlyTime = DateTimeFormatter.ofPattern("HH:mm")
+//		private val format = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+//		private val formatOnlyDate = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+//		private val formatOnlyTime = DateTimeFormatter.ofPattern("HH:mm")
 		fun now(): CustomDateTime {
 			return fromCalendar(Calendar.getInstance())
 		}
@@ -220,25 +220,27 @@ enum class DateTimeState {
 @Composable
 fun DateTimePicker(value: CustomDateTime, onValueChange: (CustomDateTime) -> Unit,
                    state: DateTimeState = DateTimeState.DATETIME, modifier: Modifier = Modifier,
-				   minuteStep: Int = 1) {
+				   minuteStep: Int = 1, yearMin: Int = 2000, yearMax: Int = yearMin + 50) {
 	Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-		InnerDateTimePicker(value, onValueChange, state, minuteStep)
+		InnerDateTimePicker(value, onValueChange, state, minuteStep, yearMin, yearMax)
 	}
 }
 
 @Composable
 fun HDateTimePicker(value: CustomDateTime, onValueChange: (CustomDateTime) -> Unit,
                     state: DateTimeState = DateTimeState.DATETIME, modifier: Modifier = Modifier,
-                    minuteStep: Int = 1) {
+                    minuteStep: Int = 1, yearMin: Int = 2000, yearMax: Int = yearMin + 50) {
 	Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-		InnerDateTimePicker(value, onValueChange, state, minuteStep)
+		InnerDateTimePicker(value, onValueChange, state, minuteStep, yearMin, yearMax)
 	}
 }
 
 @Composable
 private fun InnerDateTimePicker(value: CustomDateTime, onValueChange: (CustomDateTime) -> Unit,
-                                state: DateTimeState = DateTimeState.DATETIME, minuteStep: Int = 1) {
-	if(state != DateTimeState.TIME) DatePicker(value.toDateTriple(), { onValueChange(value.copy(year = it.first, month = it.second, day = it.third)) })
+                                state: DateTimeState = DateTimeState.DATETIME, minuteStep: Int = 1,
+								yearMin: Int, yearMax: Int) {
+	if(state != DateTimeState.TIME) DatePicker(value.toDateTriple(), { onValueChange(value.copy(year = it.first, month = it.second, day = it.third)) },
+		yearMin = yearMin, yearMax = yearMax)
 	if(state != DateTimeState.DATE) TimePicker(value.toTimePair(), { onValueChange(value.copy(hour = it.first, minute = it.second)) }, minuteStep = minuteStep)
 }
 

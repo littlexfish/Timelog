@@ -1,4 +1,5 @@
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +26,7 @@ import org.jetbrains.jewel.ui.component.styling.ButtonStyle
 import org.jetbrains.jewel.ui.theme.defaultButtonStyle
 import kotlin.time.Duration.Companion.days
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HistoryPage(profileState: MutableState<Profile?>, recordPageState: MutableState<Page>, record: MutableState<String?>) {
 	val historyResponse = remember { mutableStateOf(HistoryResponse(emptyList())) }
@@ -35,9 +37,11 @@ fun HistoryPage(profileState: MutableState<Profile?>, recordPageState: MutableSt
 		val endDate = remember { mutableStateOf(now) }
 		val reRequest = remember { mutableStateOf(false) }
 		Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-			DatePicker(beginDate.value.toDateTriple(), { beginDate.value = it.toCustomDateTime() }, Modifier.weight(1f))
+			DatePicker(beginDate.value.toDateTriple(), { beginDate.value = it.toCustomDateTime() }, Modifier.weight(1f),
+				yearMin = (now.year ?: 2000) - 10, yearMax = (now.year ?: 2000) + 1)
 			Text("to")
-			DatePicker(endDate.value.toDateTriple(), { endDate.value = it.toCustomDateTime() }, Modifier.weight(1f))
+			DatePicker(endDate.value.toDateTriple(), { endDate.value = it.toCustomDateTime() }, Modifier.weight(1f),
+				yearMin = (now.year ?: 2000) - 10, yearMax = (now.year ?: 2000) + 1)
 			DefaultButton({
 				reRequest.value = !reRequest.value
 			}) {
@@ -62,12 +66,19 @@ fun HistoryPage(profileState: MutableState<Profile?>, recordPageState: MutableSt
 			}
 		}
 		Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
 			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-				Text("Action", Modifier.width(100.dp), color = Color.Black, fontWeight = FontWeight.Bold)
-				Text("Title", Modifier.weight(1f), color = Color.Black, fontWeight = FontWeight.Bold)
-				Text("Activity", Modifier.weight(1f), color = Color.Black, fontWeight = FontWeight.Bold)
-				Text("Start", Modifier.weight(1f), color = Color.Black, fontWeight = FontWeight.Bold)
-				Text("End", Modifier.weight(1f), color = Color.Black, fontWeight = FontWeight.Bold)
+				@Composable
+				fun Title(name: String, tooltip: String, modifier: Modifier = Modifier.weight(1f), color: Color = Color.Black) {
+					Tooltip({ Text(tooltip) }, modifier) {
+						Text(name, color = color, fontWeight = FontWeight.Bold)
+					}
+				}
+				Title("Action", "Log Action(Disabled)", Modifier.width(100.dp), Color.Gray)
+				Title("Title", "Log Title")
+				Title("Activity", "Activity Type")
+				Title("Start", "Start Time")
+				Title("End", "End Time")
 			}
 			Divider(Orientation.Horizontal, Modifier.fillMaxWidth())
 			val scroll = rememberScrollState()
@@ -77,17 +88,21 @@ fun HistoryPage(profileState: MutableState<Profile?>, recordPageState: MutableSt
 				}
 			}
 			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-				DefaultButton({
-					record.value = null
-					recordPageState.value = Page.Record
-				}) {
-					Text("Add Log")
+				Tooltip({ Text("Add single log") }) {
+					DefaultButton({
+						record.value = null
+						recordPageState.value = Page.Record
+					}) {
+						Text("Add Log")
+					}
 				}
-				OutlinedButton({
-					record.value = null
-					recordPageState.value = Page.WeeklyRecord
-				}) {
-					Text("Weekly Add")
+				Tooltip({ Text("Add log weekly with template") }) {
+					OutlinedButton({
+						record.value = null
+						recordPageState.value = Page.WeeklyRecord
+					}) {
+						Text("Weekly Add")
+					}
 				}
 				Spacer(Modifier.weight(1f))
 				DefaultButton({
