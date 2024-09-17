@@ -177,7 +177,10 @@ private fun Board(begin: CustomDateTime, end: CustomDateTime, profile: Profile) 
 	}
 	else {
 		Column(Modifier.padding(8.dp)) {
-			Text("Total Time: ${boardData.value!!.totalTime}", Modifier.align(Alignment.CenterHorizontally),
+			Text("From ${begin.toOnlyDate()} to ${end.toOnlyDate()}", Modifier.align(Alignment.CenterHorizontally))
+			val tt = boardData.value!!.totalTime
+			Text("Total Time: ${tt.hour.toString().padStart(2, '0')}:${tt.minute.toString().padStart(2, '0')}",
+				Modifier.align(Alignment.CenterHorizontally),
 				fontWeight = FontWeight.Bold, fontSize = 20.sp)
 			Divider(Orientation.Horizontal)
 			Column(Modifier.verticalScroll(rememberScrollState()).padding(8.dp)) {
@@ -196,7 +199,7 @@ private fun Board(begin: CustomDateTime, end: CustomDateTime, profile: Profile) 
 					Column {
 						keys.forEach {
 							val v = boardData.value!!.dataMap[it]!!
-							Text("${(v.hour to v.minute).toCustomDateTime()}", Modifier.fillMaxWidth())
+							Text("${v.hour.toString().padStart(2, '0')}:${v.minute.toString().padStart(2, '0')}", Modifier.fillMaxWidth())
 						}
 					}
 				}
