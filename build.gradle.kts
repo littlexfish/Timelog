@@ -46,7 +46,7 @@ compose.desktop {
 		nativeDistributions {
 			targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.AppImage)
 			packageName = "Timelog"
-			packageVersion = "1.0.2"
+			packageVersion = "1.0.3"
 		}
 	}
 }

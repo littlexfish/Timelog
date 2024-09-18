@@ -24,10 +24,11 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
 @Composable
-fun RecordPage(profile: Profile, teamList: MutableState<TeamList?>, activities: MutableState<ActivityTypeListJson?>,
-               recordPageState: MutableState<Page>, record: MutableState<String?>) {
+fun RecordPage(profile: Profile, recordPageState: MutableState<Page>) {
+	val activities = Lookup.activities
+	val teamList = Lookup.teams
 	Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-		val default = getDefaultRecord(profile, activities.value, teamList.value)
+		val default = getDefaultRecord(profile, activities, teamList)
 		val title = remember { mutableStateOf(default.title) }
 		val team = remember { mutableStateOf(default.activityUnitID) }
 		val project = remember { mutableStateOf(default.activityTypeName) }
@@ -39,7 +40,7 @@ fun RecordPage(profile: Profile, teamList: MutableState<TeamList?>, activities: 
 		val breakTime = remember { mutableStateOf(1.hours) }
 		TextField(title.value, { title.value = it }, placeholder = { Text("Title") })
 		Dropdown(menuContent = {
-			teamList.value?.teamList?.forEach {
+			teamList.teamList.forEach {
 				selectableItem(it.teamID == team.value, onClick = {
 					team.value = it.teamID
 				}) {
@@ -47,10 +48,10 @@ fun RecordPage(profile: Profile, teamList: MutableState<TeamList?>, activities: 
 				}
 			}
 		}) {
-			Text(teamList.value?.teamList?.find { it.teamID == team.value }?.teamName ?: "")
+			Text(teamList.teamList.find { it.teamID == team.value }?.teamName ?: "")
 		}
 		Dropdown(menuContent = {
-			activities.value?.activityTypeList?.forEach {
+			activities.activityTypeList.forEach {
 				selectableItem(it.name == project.value, onClick = {
 					project.value = it.name
 				}) {
@@ -155,10 +156,7 @@ fun getDefaultRecord(profile: Profile, activities: ActivityTypeListJson?, teamLi
 }
 
 @Composable
-fun WeeklyRecordPage(profile: Profile, teamList: MutableState<TeamList?>, activities: MutableState<ActivityTypeListJson?>,
-                   recordPageState: MutableState<Page>) {
-	ensureActivities(profile, activities)
-	ensureTeam(profile, teamList)
+fun WeeklyRecordPage(profile: Profile, recordPageState: MutableState<Page>) {
 	Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
 		val weekDaySelected = remember { mutableStateOf(0) }
 		fun td(v: Int, t: String) = TabData.Default(
@@ -188,7 +186,7 @@ fun WeeklyRecordPage(profile: Profile, teamList: MutableState<TeamList?>, activi
 				val start = it.endTime + 1.hours
 				val end = start + 1.hours
 				it.copy(startTime = start, endTime = end)
-			} ?: getDefaultRecord(profile, activities.value, teamList.value)
+			} ?: getDefaultRecord(profile, Lookup.activities, Lookup.teams)
 			weekTimeLog[weekDaySelected.value].add(fromLastOrDefault)
 			coroutine.launch {
 				scroll.animateScrollTo(scroll.maxValue)
@@ -215,7 +213,7 @@ fun WeeklyRecordPage(profile: Profile, teamList: MutableState<TeamList?>, activi
 					timeLog.forEachIndexed { index, it ->
 						EditWeekRecord(it, { record ->
 							timeLog[index] = record
-						}, teamList, activities, {
+						}, {
 							timeLog.removeAt(index)
 						}) {
 							popup.value = it
@@ -354,16 +352,16 @@ private fun importWeekRecord(records: List<SnapshotStateList<Record>>, file: Fil
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun EditWeekRecord(record: Record, onValueChange: (Record) -> Unit,
-                           teamList: MutableState<TeamList?>,
-                           activities: MutableState<ActivityTypeListJson?>,
 						   onRemove: () -> Unit,
 						   onWarning: (msg: String) -> Unit) {
+	val teamList = Lookup.teams
+	val activities = Lookup.activities
 	Column(Modifier.border(1.dp, Color.Gray, RoundedCornerShape(8.dp)).padding(8.dp)) {
 		fun Modifier.cell() = this.weight(1f).fillMaxHeight().padding(4.dp)
 		Row(Modifier.height(IntrinsicSize.Max)) {
 			TextField(record.title, { onValueChange(record.copy(title = it)) }, Modifier.cell(), placeholder = { Text("Title") })
 			Dropdown(Modifier.cell(), menuContent = {
-				teamList.value?.teamList?.forEach {
+				teamList.teamList.forEach {
 					selectableItem(it.teamID == record.activityUnitID, onClick = {
 						onValueChange(record.copy(activityUnitID = it.teamID))
 					}) {
@@ -371,10 +369,10 @@ private fun EditWeekRecord(record: Record, onValueChange: (Record) -> Unit,
 					}
 				}
 			}) {
-				Text(teamList.value?.teamList?.find { it.teamID == record.activityUnitID }?.teamName ?: "")
+				Text(teamList.teamList.find { it.teamID == record.activityUnitID }?.teamName ?: "")
 			}
 			Dropdown(Modifier.cell(), menuContent = {
-				activities.value?.activityTypeList?.forEach {
+				activities.activityTypeList.forEach {
 					selectableItem(it.name == record.activityTypeName, onClick = {
 						onValueChange(record.copy(activityTypeName = it.name))
 					}) {

@@ -9,7 +9,7 @@ data class Record(
 	val activityUnitID: String,
 	val startTime: CustomDateTime,
 	val endTime: CustomDateTime,
-	val description: String = "",
+	val description: String? = null,
 )
 
 /**
@@ -21,7 +21,7 @@ data class RecordTemplate(
 	val activityUnitID: String,
 	val startTime: CustomDateTime,
 	val endTime: CustomDateTime,
-	val description: String = "",
+	val description: String? = null,
 )
 
 fun Record.toRecordTemplate() = RecordTemplate(title, activityTypeName, activityUnitID, startTime.toOnlyTime(), endTime.toOnlyTime(), description)

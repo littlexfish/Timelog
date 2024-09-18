@@ -29,7 +29,7 @@ import org.jetbrains.jewel.window.TitleBar
 import org.jetbrains.jewel.window.styling.DecoratedWindowStyle
 import org.jetbrains.jewel.window.styling.TitleBarStyle
 
-const val version = "1.0.2"
+const val version = "1.0.3"
 
 enum class Page {
 	History,
@@ -37,24 +37,52 @@ enum class Page {
 	WeeklyRecord
 }
 
+private lateinit var activitiesLookup: ActivityTypeListJson
+private lateinit var teamsLookup: TeamList
+
+object Lookup {
+	val activities: ActivityTypeListJson
+		get() = activitiesLookup
+	val teams: TeamList
+		get() = teamsLookup
+	fun findTeamId(teamName: String?) = teamName?.let { tn ->
+		teamsLookup.teamList.find {
+			it.teamName == tn
+		}?.teamID
+	}
+	fun findTeamName(teamId: String?) = teamId?.let { ti ->
+		teamsLookup.teamList.find {
+			it.teamID == ti
+		}?.teamName
+	}
+}
+
 @Composable
 @Preview
 fun App() {
 	val profile = remember { mutableStateOf<Profile?>(null) }
 	val pageState = remember { mutableStateOf(Page.History) }
-	val recordState = remember { mutableStateOf<String?>(null) }
-	val activitiesState = remember { mutableStateOf<ActivityTypeListJson?>(null) }
-	val teamsState = remember { mutableStateOf<TeamList?>(null) }
 	if(profile.value == null) {
 		LoginPage(profile)
 	}
 	else {
-		ensureActivities(profile.value!!, activitiesState)
-		ensureTeam(profile.value!!, teamsState)
+		val coroutine = rememberCoroutineScope()
+		SideEffect {
+			if(!::activitiesLookup.isInitialized) {
+				coroutine.launch {
+					activitiesLookup = getActivities(profile.value!!.userId) ?: ActivityTypeListJson(emptyList(), null)
+				}
+			}
+			if(!::teamsLookup.isInitialized) {
+				coroutine.launch {
+					teamsLookup = getTeams(profile.value!!.username) ?: TeamList(emptyList())
+				}
+			}
+		}
 		when(pageState.value) {
-			Page.History -> HistoryPage(profile, pageState, recordState)
-			Page.Record -> RecordPage(profile.value!!, teamsState, activitiesState, pageState, recordState)
-			Page.WeeklyRecord -> WeeklyRecordPage(profile.value!!, teamsState, activitiesState, pageState)
+			Page.History -> HistoryPage(profile, pageState)
+			Page.Record -> RecordPage(profile.value!!, pageState)
+			Page.WeeklyRecord -> WeeklyRecordPage(profile.value!!, pageState)
 		}
 	}
 }

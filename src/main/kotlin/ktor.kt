@@ -1,7 +1,4 @@
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.rememberCoroutineScope
+
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dto.*
 import io.ktor.client.*
@@ -12,7 +9,6 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
-import kotlinx.coroutines.launch
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -69,21 +65,6 @@ suspend fun getTeams(username: String): TeamList? {
 	}
 }
 
-@Composable
-fun ensureTeam(profile: Profile, teamList: MutableState<TeamList?>) {
-	val coroutine = rememberCoroutineScope()
-	if(teamList.value == null) {
-		SideEffect {
-			coroutine.launch {
-				teamList.value = getTeams(profile.username)
-				if(teamList.value == null) {
-					teamList.value = TeamList(emptyList())
-				}
-			}
-		}
-	}
-}
-
 suspend fun getActivities(userId: String): ActivityTypeListJson? {
 	val res = client.post("$timelogUrl/api/login") {
 		contentType(ContentType.Application.Json)
@@ -93,21 +74,6 @@ suspend fun getActivities(userId: String): ActivityTypeListJson? {
 	else {
 		System.err.println("Error: ${res.status}\ndata: $userId\nresponse: ${res.body<String>()}")
 		null
-	}
-}
-
-@Composable
-fun ensureActivities(profile: Profile, activities: MutableState<ActivityTypeListJson?>) {
-	val coroutine = rememberCoroutineScope()
-	if(activities.value == null) {
-		SideEffect {
-			coroutine.launch {
-				activities.value = getActivities(profile.userId)
-				if(activities.value == null) {
-					activities.value = ActivityTypeListJson(emptyList(), null)
-				}
-			}
-		}
 	}
 }
 
@@ -149,5 +115,35 @@ suspend fun getBoard(begin: CustomDateTime, end: CustomDateTime, profile: Profil
 	else {
 		System.err.println("Error: ${res.status}\ndata: ${begin.toOnlyDate()} ~ ${end.toOnlyDate()}\nresponse: ${res.body<String>()}")
 		null
+	}
+}
+
+/**
+ * @return the log item id
+ */
+suspend fun editRecord(logItem: LogItem, profile: Profile): String? {
+	val res = client.post("$timelogUrl/api/log/edit") {
+		contentType(ContentType.Application.Json)
+		setBody(logItem.toEditRecord(profile.userId))
+	}
+	return if(res.status.isSuccess()) res.body()
+	else {
+		System.err.println("Error: ${res.status}\ndata: $logItem\nresponse: ${res.body<String>()}")
+		null
+	}
+}
+
+suspend fun deleteRecord(record: LogItem, profile: Profile): Boolean {
+	val res = client.post("$timelogUrl/api/log/remove") {
+		contentType(ContentType.Application.Json)
+		setBody(mapOf(
+			"userID" to profile.userId,
+			"logID" to record.id,
+		))
+	}
+	return if(res.status.isSuccess()) res.body<Map<String, Boolean>>()["result"] ?: false
+	else {
+		System.err.println("Error: ${res.status}\ndata: $record\nresponse: ${res.body<String>()}")
+		false
 	}
 }
